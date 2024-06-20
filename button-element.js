@@ -1,7 +1,7 @@
 /**
  * @note Work in progress
  */
-export class HTMLArrowButtonElement extends HTMLElement {
+export class ArrowButtonElement extends HTMLElement {
   static #template = document.createElement("template");
   static #styleSheet = new CSSStyleSheet();
   static {

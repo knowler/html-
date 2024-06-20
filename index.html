@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HTML→</title>
     <link rel="stylesheet" href="./main.css">
-    <link rel="modulepreload" href="./html-.js">
+    <link rel="modulepreload" href="./anchor-element.js">
     <link rel="modulepreload" href="./button-element.js">
-    <script type="module" async blocking="render" src="./html-.js"></script>
+    <script type="module" blocking="render">
+      import { ArrowAnchorElement } from "./anchor-element.js";
+      import { ArrowButtonElement } from "./button-element.js";
+
+      customElements.define("a-", ArrowAnchorElement);
+      customElements.define("button-", ArrowButtonElement);
+    </script>
     <script defer src="./main.js"></script>
   </head>
   <body>
