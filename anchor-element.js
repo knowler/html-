@@ -6,6 +6,7 @@ export class HTMLArrowAnchorElement extends HTMLElement {
       :host([href]) {
         color: LinkText;
         text-decoration: underline;
+        cursor: pointer;
       }
     `);
     this.#template.innerHTML = "<slot></slot>";
@@ -19,6 +20,7 @@ export class HTMLArrowAnchorElement extends HTMLElement {
     this.shadowRoot.append(this.constructor.#template.content.cloneNode(true));
 
     // TODO: link functionality
+    this.addEventListener("click", this);
   }
 
   // TODO: accept user tab index
@@ -35,6 +37,13 @@ export class HTMLArrowAnchorElement extends HTMLElement {
           this.tabIndex = 0;
         }
         break;
+    }
+  }
+
+  handleEvent(event) {
+    if (event.type === "click" && this.hasAttribute("href")) {
+      // Probably not doing this great
+      history.pushState({}, null, this.getAttribute("href"));
     }
   }
 }
