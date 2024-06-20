@@ -1,0 +1,16 @@
+:root {
+  font-family: system-ui;
+  line-height: 1.5;
+}
+
+h2 {
+  font-family: Dank Mono, monospace;
+}
+
+h2::highlight(opening-tag) {
+  color: RoyalBlue;
+}
+
+h2::highlight(arrow-tag) {
+  color: DeepPink;
+}
