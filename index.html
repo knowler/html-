@@ -3,44 +3,510 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HTML→</title>
-    <link rel="stylesheet" href="./main.css">
+    <title>html→</title>
     <link rel="modulepreload" href="./anchor-element.js">
     <link rel="modulepreload" href="./button-element.js">
+    <link rel="modulepreload" href="./heading-element.js">
+    <link rel="modulepreload" href="https://esm.sh/gh/knowler/log-form-element@154878e46e/log-form-element.js?raw">
+    <link rel="stylesheet" href="./assets/dm.css">
+    <link rel="stylesheet" href="./main.css">
     <script type="module" blocking="render">
       import { ArrowAnchorElement } from "./anchor-element.js";
       import { ArrowButtonElement } from "./button-element.js";
+      import { ArrowHeadingElement } from "./heading-element.js";
 
       customElements.define("a-", ArrowAnchorElement);
       customElements.define("button-", ArrowButtonElement);
+
+      for (let i = 1; i <= 6; i++) {
+        customElements.define(`h${i}-`, class extends ArrowHeadingElement {
+          constructor() {
+            super();
+            this.level = i;
+          }
+        });
+      }
+
+      const tagToRole = new Map([
+        ["p", "paragraph"],
+        ["main", "main"],
+        ["article", "article"],
+        ["aside", "complimentary"],
+        ["nav", "navigation"],
+        ["search", "search"],
+        ["section", "region"],
+      ]);
+
+      const blockStyleSheet = new CSSStyleSheet();
+      blockStyleSheet.replaceSync(`:host { display: block; }`)
+
+      for (const [tagName, role] of tagToRole) {
+        customElements.define(`${tagName}-`, class extends HTMLElement {
+          #internals = this.attachInternals();
+          constructor() {
+            super();
+            this.#internals.role = role;
+            this.attachShadow({ mode: "open" });
+            this.shadowRoot.innerHTML = "<slot></slot>";
+            this.shadowRoot.adoptedStyleSheets = [blockStyleSheet];
+          }
+        });
+      }
+
+      for (const [tagName, role] of [["header", "banner"], ["footer", "contentinfo"]]) {
+        customElements.define(`${tagName}-`, class extends HTMLElement {
+          #internals = this.attachInternals();
+          constructor() {
+            super();
+            this.attachShadow({ mode: "open" });
+            this.shadowRoot.innerHTML = "<slot></slot>";
+            this.shadowRoot.adoptedStyleSheets = [blockStyleSheet];
+          }
+
+          connectedCallback() {
+            let inSectioningElement = this.closest(":is(main, main-, [role=main], article, article-, [role=article], section, section-, [role=region], aside, aside-, [role=complementary], nav, nav-, [role=navigation])");
+
+            this.#internals.role = !inSectioningElement ? role : "generic";
+          }
+        });
+      }
     </script>
     <script defer src="./main.js"></script>
+    <script type="module">
+      import { LogFormElement } from "https://esm.sh/gh/knowler/log-form-element@154878e46e/log-form-element.js?raw";
+
+      LogFormElement.define();
+    </script>
   </head>
   <body>
-    <h1>HTML→</h1>
-    <p>A forward thinking custom elements library that <strong>you probably shouldn’t use. Like actually.</strong></p>
-    <section>
-      <h2>&lt;button-&gt;</h2>
-      <button>Reference</button>
-      <button->Arrow</button->
-    </section>
-    <section>
-      <h2>&lt;a-&gt;</h2>
-      <p>Coming soon</p>
-      <h3>With <code>href</code> attribute</h3>
-      <a href="#">Reference</a>
-      <a- href="#">Arrow</a->
-      <h3>Without <code>href</code> attribute</h3>
-      <a>Reference</a>
-      <a->Arrow</a->
-    </section>
-    <section>
-      <h2>&lt;select-&gt;</h2>
-      <p>Coming soon</p>
-    </section>
-    <section>
-      <h2>&lt;form-&gt;</h2>
-      <p>Coming soon</p>
-    </section>
+    <header->
+      <nav->
+        <ul>
+          <li><a- href="https://github.com/knowler/html-/">Repository</a-></li>
+        </ul>
+      </nav->
+    </header->
+    <main->
+      <header->
+        <h1-><code>&lt;html-&gt;</code></h1->
+      </header->
+      <p->A forward thinking<sup><a href="#fn1" id="fnref1">1</a></sup> custom elements library that <strong>you probably shouldn’t use.<br> Like actually.</strong></p->
+      <p->As an exercise of seeing how much we can do with the Web Components APIs, this is an attempt to re-implement much of HTML with it.</p->
+      <details open>
+        <summary id="toe-summary">Table of Elements</summary>
+        <style>
+          @scope {
+            :scope {
+              margin-block: 2rem;
+            }
+          }
+        </style>
+        <table aria-labelledby="toe-summary">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>State</th>
+              <th>Accessible</th>
+              <th>Styled</th>
+              <th>ARIA role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><code>&lt;a-&gt;</code></th>
+              <td>Started</td>
+              <td>Partial</td>
+              <td>Partial</td>
+              <td>
+                <code>link</code> when <code>href</code> is present, otherwise generic
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;button-&gt;</code></th>
+              <td>Started</td>
+              <td>Partial</td>
+              <td>Partial</td>
+              <td><code>button</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h1-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h2-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h3-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h4-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h5-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;h6-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>heading</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;p-&gt;</code></th>
+              <td>Started</td>
+              <td>Yes</td>
+              <td>Partial</td>
+              <td><code>paragraph</code></td>
+            </tr>
+
+            <tr>
+              <th scope="row"><code>&lt;main-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>main</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;article-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>article</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;nav-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>navigation</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;search-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>search</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;aside-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>complementary</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;section-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>region</code> when it has an accessible name, otherwise, <code>generic</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;header-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>banner</code> when not a descedant of a sectioning landmark, otherwise, <code>generic</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;footer-&gt;</code></th>
+              <td>Complete</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><code>contentinfo</code> when not a descedant of a sectioning landmark, otherwise, <code>generic</code></td>
+            </tr>
+
+            <!-- TODO -->
+            <tr>
+              <th scope="row"><code>&lt;form-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+              <td><code>form</code></td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;select-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;datalist-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;option-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;input-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;textarea-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;output-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;progress-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;meter-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;label-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;fieldset-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;legend-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;ul-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;ol-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;menu-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;li-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;dl-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;dt-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;dd-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;table-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;caption-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;colgroup-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;col-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;thead-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;tbody-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;tfoot-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;tr-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;th-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;td-&gt;</code></th>
+              <td>To do</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+
+            <!-- We aren’t doing these ones -->
+            <tr>
+              <th scope="row"><code>&lt;slot-&gt;</code></th>
+              <td>Not possible</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;template-&gt;</code></th>
+              <td>Not possible</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;html-&gt;</code></th>
+              <td>Too special</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;head-&gt;</code></th>
+              <td>Too special</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>&lt;body-&gt;</code></th>
+              <td>Too special</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+      <section->
+        <h2-><code>&lt;button-&gt;</code></h2->
+        <h3->Outside a <code>&lt;form&gt;</code></h3->
+        <button>Reference</button>
+        <button->Arrow</button->
+        <h3->Inside a <code>&lt;form&gt;</code></h3->
+        <p->These should perform a submit:</p->
+        <log-form>
+          <form>
+            <button>Reference</button>
+            <button->Arrow</button->
+          </form>
+        </log-form>
+        <p->These should not perform a submit:</p->
+        <log-form>
+          <form>
+            <button type="button">Reference</button>
+            <button- type="button">Arrow</button->
+          </form>
+        </log-form>
+        <p->These should reset the form:</p->
+        <log-form>
+          <form>
+            <label>Change me <input name="change-me"></label>
+            <button type="reset">Reference</button>
+            <button- type="reset">Arrow</button->
+          </form>
+        </log-form>
+      </section->
+      <section->
+        <h2-><code>&lt;a-&gt;</code></h2->
+        <p->Coming soon</p->
+        <h3->With <code>href</code> attribute</h3->
+        <a href="#">Reference</a>
+        <a- href="#">Arrow</a->
+        <h3->Without <code>href</code> attribute</h3->
+        <a>Reference</a>
+        <a->Arrow</a->
+      </section->
+      <section->
+        <h2-><code>&lt;select-&gt;</code></h2->
+        <p->Coming soon</p->
+      </section->
+      <section->
+        <h2-><code>&lt;form-&gt;</code></h2->
+        <p->Coming soon</p->
+      </section->
+      <hr>
+      <section- class="footnotes">
+        <ol>
+          <li id="fn1">Not really. <a href="#fnref1">↩︎</a></li>
+        </ol>
+      </section->
+      <footer->
+        I’m not a real footer.
+      </footer->
+    </main->
+    <!-- VO with Chrome announces the built-in footer element as a
+footer, but this as contentinformation. -->
+    <footer->
+      <p>Don’t use this.</p>
+    </footer->
   </body>
 </html>

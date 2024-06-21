@@ -1,16 +1,49 @@
 :root {
   font-family: system-ui;
+  font-feature-settings: "ss06";
   line-height: 1.5;
 }
 
-h2 {
-  font-family: Dank Mono, monospace;
+body {
+  margin: 0;
+  padding: 2rem;
 }
 
-h2::highlight(opening-tag) {
+code {
+  font-family: "dm", monospace;
+}
+
+h1- {
+  font-style: italic;
+  font-size: 4rem;
+}
+
+::highlight(opening-tag) {
   color: RoyalBlue;
 }
 
-h2::highlight(arrow-tag) {
+::highlight(arrow-tag) {
   color: DeepPink;
+}
+
+.footnotes {
+  ol {
+    padding-inline-start: 1.5rem;
+  }
+
+  li {
+    transition: background-color 0.1s ease-in-out;
+
+    &:target {
+      background-color: hsl(45deg 100% 80%);
+    }
+  }
+}
+
+main- {
+  max-inline-size: 40rem;
+}
+
+table :is(thead, tbody) th:first-of-type {
+  text-align: start;
 }

@@ -1,8 +1,8 @@
 const openingHighlight = new Highlight();
 const arrowHighlight = new Highlight();
 
-for (const h2 of document.querySelectorAll("h2")) {
-  const [text] = h2.childNodes;
+for (const heading of document.querySelectorAll(":is(:is(h1-, h2-, th) code:only-child)")) {
+  const [text] = heading.childNodes;
 
   const openingTag = new Range();
   openingTag.setStart(text, 0);

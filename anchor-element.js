@@ -7,13 +7,14 @@ export class ArrowAnchorElement extends HTMLElement {
         color: LinkText;
         text-decoration: underline;
         cursor: pointer;
+        outline-offset: 1px;
       }
 
       /* ActiveText and VisitedText don’t seem to work at all here */
-      :host(:state(visited)) {
+      :host([href]:state(visited)) {
         color: rgb(85 26 139);
       }
-      :host(:state(active)) {
+      :host([href]:state(active)) {
         color: red;
       }
     `);
@@ -27,6 +28,8 @@ export class ArrowAnchorElement extends HTMLElement {
     this.shadowRoot.adoptedStyleSheets = [this.constructor.#styleSheet];
     this.shadowRoot.append(this.constructor.#template.content.cloneNode(true));
 
+    this.#internals.role = "generic";
+
     // TODO: link functionality
     this.addEventListener("click", this);
     this.addEventListener("mousedown", this);
@@ -36,11 +39,10 @@ export class ArrowAnchorElement extends HTMLElement {
   // TODO: accept user tab index
   static get observedAttributes() { return ["href"]; }
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(arguments);
     switch (name) {
       case "href":
         if (newValue === null) {
-          delete this.#internals.role;
+          this.#internals.role = "generic";
           this.removeAttribute("tabindex");
           this.#internals.states.delete("visited");
         } else {
