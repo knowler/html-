@@ -64,14 +64,33 @@ export class ArrowAnchorElement extends HTMLElement {
 	}
 
 	handleEvent(event) {
-
 		switch (event.type) {
 			case "click":
+				if (this.hasAttribute("download") && "showOpenFilePicker" in window) {
+					this.#downloadFile();
+					break;
+				}
 
+				// TODO: how do we factor in referrerpolicy
+				// Also, we probably need to use the document’s default.
 				let windowfeatures = [];
 
 				if (this.rel.includes("noreferrer")) windowfeatures.push("noreferrer");
 				if (this.rel.includes("noopener")) windowfeatures.push("noopener");
+				//if (this.rel.includes("opener")) windowfeatures.push("opener");
+
+				if (this.ping) {
+					for (const url of this.ping.split(" ")) {
+						if (URL.canParse(url)) {
+							// TODO handle referrer stuff (what needs to happen)
+							fetch(url, {
+								method: "POST",
+								body: "PING",
+								keepalive: true, // Assuming this, but need to test
+							});
+						}
+					}
+				}
 
 				window.open(this.href, this.target || "_self", windowfeatures.join(","));
 
@@ -89,6 +108,18 @@ export class ArrowAnchorElement extends HTMLElement {
 				this.#internals.states.delete("active");
 				break;
 		}
+	}
+
+	async #downloadFile() {
+		const handle = await window.showSaveFilePicker({
+			startIn: "downloads",
+			suggestedName: this.download ?? this.#url.pathname,
+		});
+		const writable = await handle.createWritable();
+		// TODO: set referrer-related headers
+		const response = await fetch(this.href);
+		await writable.write(await response.blob())
+		await writable.close();
 	}
 
 	// Reflected attributes
@@ -135,6 +166,7 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.setAttribute("type", value)
 	}
 
+	// The spec says this should be limited to only known values
 	get referrerPolicy() {
 		return this.getAttribute("referrerpolicy") ?? "";
 	}

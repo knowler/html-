@@ -13,17 +13,37 @@
 
 	ArrowAnchorElement.define();
 </script>
+<style>
+:root {
+	font-family: system-ui;
+	font-feature-settings: "ss06";
+}
+</style>
 
 <h1>Anchor Element</h1>
 
+<h2>No <code>href</code></h2>
+<p><a>Relative URL</a>
+<p><a->Relative URL</a->
+
 <h2>With relative URL</h2>
-<a href="/anchor-element-demo.html" hreflang="en-ca">Relative URL</a>
-<a- href="/anchor-element-demo.html" hreflang="en-ca">Relative URL</a->
+<p><a href="/anchor-element-demo.html" hreflang="en-ca">HTML, Relative URL</a>
+<p><a- href="/anchor-element-demo.html" hreflang="en-ca">Arrow, Relative URL</a->
 
 <h2>With absolute URL</h2>
-<a href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Absolute URL</a>
-<a- href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Absolute URL</a->
+<p><a href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">HTML, Absolute URL</a>
+<p><a- href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Arrow, Absolute URL</a->
 
 <h2>With hash</h2>
-<a href="#main">Skip to content</a>
-<a- href="#main">Skip to content</a->
+<p><a href="#main">HTML, Hash</a>
+<p><a- href="#main">Arrow, Hash</a->
+
+<h2>Ping</h2>
+
+<p><a href="/anchor-element-demo.html" ping="https://knowler.dev">HTML, ping on follow</a>
+<p><a- href="/anchor-element-demo.html" ping="https://knowler.dev">Arrow, ping on follow</a->
+
+<h2>Download</h2>
+
+<p><a href="/anchor-element.js" download>HTML, Download custom element</a>
+<p><a- href="/anchor-element.js" download>Arrow, Download custom element</a->
