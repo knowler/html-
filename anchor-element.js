@@ -39,6 +39,7 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.addEventListener("keydown", this);
 		this.addEventListener("mousedown", this);
 		this.addEventListener("mousemove", this);
+		this.addEventListener("dragstart", this);
 	}
 
 	// TODO: accept user tab index
@@ -51,8 +52,13 @@ export class ArrowAnchorElement extends HTMLElement {
 
 				this.#internals.role = newValue != null ? "link" : "generic";
 
-				if (this.#internals.role === "link") this.setAttribute("tabindex", 0);
-				else this.removeAttribute("tabindex");
+				if (this.#internals.role === "link") {
+					this.setAttribute("tabindex", 0);
+					this.setAttribute("draggable", "true");
+				} else {
+					this.removeAttribute("tabindex");
+					this.removeAttribute("draggable");
+				}
 
 				this.#url = URL.canParse(newValue)
 					? new URL(newValue)
@@ -102,7 +108,8 @@ export class ArrowAnchorElement extends HTMLElement {
 
 				break;
 			case "mousedown":
-				if (!event.altKey) event.preventDefault();
+				// TODO: might need to add this back
+				//if (!event.altKey) event.preventDefault();
 				this.#internals.states.add("active");
 				this.ownerDocument.addEventListener("mouseup", this, { once: true });
 				break;
@@ -112,6 +119,25 @@ export class ArrowAnchorElement extends HTMLElement {
 				break;
 			case "mouseup":
 				this.#internals.states.delete("active");
+				break;
+
+			case "dragstart":
+				if (event.defaultPrevented) break;
+
+				// TODO: maybe set a preview image?
+
+				// This works for WebKit (but we can’t set a title)
+				event.dataTransfer.setData("text/plain", this.href);
+
+				// This works for Chromium (but we can’t set a title)
+				event.dataTransfer.setData("text/uri-list", this.href);
+
+				// This does nothing (but in Chromium anchors include outerHTML; Firefox does this including the parent element?).
+				//event.dataTransfer.setData("text/html", `<a href="${this.href}">${this.text}</a>`);
+
+				// This works for Firefox
+				event.dataTransfer.setData("text/x-moz-url", `${this.href}\r\n${this.text}`);
+
 				break;
 		}
 	}
