@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<script type="importmap">
+	{
+		"imports": {
+			"arrow-html/utils": "./utils.js",
+			"arrow-html/anchor-element": "./anchor-element.js"
+		}
+	}
+</script>
+<script type="module">
+	import { ArrowAnchorElement } from "arrow-html/anchor-element";
+
+	ArrowAnchorElement.define();
+</script>
+
+<h1>Anchor Element</h1>
+
+<h2>With relative URL</h2>
+<a href="/anchor-element-demo.html" hreflang="en-ca">Relative URL</a>
+<a- href="/anchor-element-demo.html" hreflang="en-ca">Relative URL</a->
+
+<h2>With absolute URL</h2>
+<a href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Absolute URL</a>
+<a- href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Absolute URL</a->
+
+<h2>With hash</h2>
+<a href="#main">Skip to content</a>
+<a- href="#main">Skip to content</a->
