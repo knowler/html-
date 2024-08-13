@@ -133,7 +133,7 @@ export class ArrowAnchorElement extends HTMLElement {
 				event.dataTransfer.setData("text/uri-list", this.href);
 
 				// This does nothing (but in Chromium anchors include outerHTML; Firefox does this including the parent element?).
-				//event.dataTransfer.setData("text/html", `<a href="${this.href}">${this.text}</a>`);
+				event.dataTransfer.setData("text/html", this.outerHTML);
 
 				// This works for Firefox
 				event.dataTransfer.setData("text/x-moz-url", `${this.href}\r\n${this.text}`);
