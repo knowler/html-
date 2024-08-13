@@ -1,7 +1,17 @@
 <!doctype html>
+<html lang="en-ca">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
+<title>HTML → Anchor Element</title>
+<meta name="description" content="Demonstrating the anchor element as a custom element.">
+<script>
+if (location.origin === "https://knowler.github.io") {
+	const base = document.createElement("base");
+	base.href = "https://knowler.github.io/html-/";
+	document.currentScript.after(base);
+}
+</script>
 <script type="importmap">
 	{
 		"imports": {
@@ -10,7 +20,7 @@
 		}
 	}
 </script>
-<script type="module">
+<script type="module" blocking="render">
 	import { ArrowAnchorElement } from "arrow-html/anchor-element";
 
 	ArrowAnchorElement.define();
