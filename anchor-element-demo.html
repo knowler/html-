@@ -15,11 +15,13 @@ if (location.origin === "https://knowler.github.io") {
 <script type="importmap">
 	{
 		"imports": {
-			"arrow-html/utils": "./utils.js",
-			"arrow-html/anchor-element": "./anchor-element.js"
+			"arrow-html/anchor-element": "./anchor-element.js",
+			"arrow-html/utils": "./utils.js"
 		}
 	}
 </script>
+<link rel="modulepreload" href="./anchor-element.js">
+<link rel="modulepreload" href="./utils.js">
 <script type="module" blocking="render">
 	import { ArrowAnchorElement } from "arrow-html/anchor-element";
 
