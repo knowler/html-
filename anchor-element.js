@@ -94,7 +94,11 @@ export class ArrowAnchorElement extends HTMLElement {
 					}
 				}
 
-				window.open(this.href, this.target || "_self", windowfeatures.join(","));
+				window.open(
+					this.href,
+					event.metaKey ? "_blank" : this.target || "_self",
+					windowfeatures.join(",")
+				);
 
 				break;
 			case "mousedown":
