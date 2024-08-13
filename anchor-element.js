@@ -65,6 +65,8 @@ export class ArrowAnchorElement extends HTMLElement {
 
 	handleEvent(event) {
 		switch (event.type) {
+			case "keydown":
+				if (event.code !== "Enter") break;
 			case "click":
 				if (this.hasAttribute("download") && "showOpenFilePicker" in window) {
 					this.#downloadFile();
