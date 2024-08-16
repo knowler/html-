@@ -4,20 +4,21 @@ export class ArrowAnchorElement extends HTMLElement {
 	static content = html`<slot></slot>`;
 	static styles = css`
 		:host([href]) {
-			color: LinkText;
+			color: light-dark(LinkText, hsl(from MediumPurple h s calc(l * 1.2)));
 			text-decoration: underline;
 			cursor: pointer;
-			outline-offset: 1px;
+			/* outline-offset: 1px; /* For Chromium */
+			user-select: text;
 		}
 
 		/* ActiveText and VisitedText don’t seem to work at all here */
 		:host([href]:state(visited)) {
-			color: VisitedText;
+			/* color: VisitedText; */
 			color: rgb(85 26 139);
 		}
 		:host([href]:state(active)) {
-			color: ActiveText;
-			color: red;
+			/* color: ActiveText; */
+			color: light-dark(Red, hsl(from Red calc(h * 1.2) calc(s * 0.8) calc(l * 1.5)));
 		}
 	`;
 
@@ -33,13 +34,14 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.shadowRoot.adoptedStyleSheets = [ArrowAnchorElement.styles];
 		this.shadowRoot.append(ArrowAnchorElement.content.cloneNode(true));
 
+		// https://w3c.github.io/html-aam/#el-a-no-href
 		this.#internals.role = "generic";
 
 		this.addEventListener("click", this);
-		this.addEventListener("keydown", this);
-		this.addEventListener("mousedown", this);
-		this.addEventListener("mousemove", this);
+		this.addEventListener("dragend", this);
 		this.addEventListener("dragstart", this);
+		this.addEventListener("keydown", this);
+		this.addEventListener("pointerdown", this);
 	}
 
 	// TODO: accept user tab index
@@ -50,6 +52,8 @@ export class ArrowAnchorElement extends HTMLElement {
 		switch (name) {
 			case "href": {
 
+				// https://w3c.github.io/html-aam/#el-a
+				// https://w3c.github.io/html-aam/#el-a-no-href
 				this.#internals.role = newValue != null ? "link" : "generic";
 
 				if (this.#internals.role === "link") {
@@ -70,10 +74,14 @@ export class ArrowAnchorElement extends HTMLElement {
 	}
 
 	handleEvent(event) {
+		//console.log(event.type, event);
 		switch (event.type) {
 			case "keydown":
 				if (event.code !== "Enter") break;
 			case "click":
+				this.#internals.states.delete("active");
+				if (event.altKey) break;
+
 				if (this.hasAttribute("download") && "showOpenFilePicker" in window) {
 					this.#downloadFile();
 					break;
@@ -85,7 +93,7 @@ export class ArrowAnchorElement extends HTMLElement {
 
 				if (this.rel.includes("noreferrer")) windowfeatures.push("noreferrer");
 				if (this.rel.includes("noopener")) windowfeatures.push("noopener");
-				//if (this.rel.includes("opener")) windowfeatures.push("opener");
+				if (this.rel.includes("opener")) windowfeatures.push("opener");
 
 				if (this.ping) {
 					for (const url of this.ping.split(" ")) {
@@ -94,7 +102,16 @@ export class ArrowAnchorElement extends HTMLElement {
 							fetch(url, {
 								method: "POST",
 								body: "PING",
-								keepalive: true, // Assuming this, but need to test
+								mode: "no-cors",
+								priority: "low",
+								keepalive: true,
+								headers: {
+									"content-length": 4,
+									// These don’t seem to work
+									"content-type": "text/ping",
+									"ping-to": this.href,
+									"ping-from": location.href,
+								},
 							});
 						}
 					}
@@ -107,37 +124,36 @@ export class ArrowAnchorElement extends HTMLElement {
 				);
 
 				break;
-			case "mousedown":
-				// TODO: might need to add this back
-				//if (!event.altKey) event.preventDefault();
+
+			case "pointerdown":
 				this.#internals.states.add("active");
-				this.ownerDocument.addEventListener("mouseup", this, { once: true });
-				break;
-			case "mousemove":
-				// TODO why?
-				event.preventDefault();
-				break;
-			case "mouseup":
-				this.#internals.states.delete("active");
 				break;
 
 			case "dragstart":
-				if (event.defaultPrevented) break;
+				if (event.altKey || event.defaultPrevented) break;
+
+				// If there is text selection this shouldn’t drag the link itself (the default)
+				const [textNode] = event.target.childNodes;
+				if (textNode && !getSelection().containsNode(textNode)) {
+
+					// This works for WebKit (but we can’t set a title)
+					event.dataTransfer.setData("text/plain", this.href);
+
+					// This works for Chromium (but we can’t set a title)
+					event.dataTransfer.setData("text/uri-list", this.href);
+
+					// This does nothing (but in Chromium anchors include outerHTML; Firefox does this including the parent element?).
+					event.dataTransfer.setData("text/html", this.outerHTML);
+
+					// This works for Firefox
+					event.dataTransfer.setData("text/x-moz-url", `${this.href}\r\n${this.text}`);
 
 				// TODO: maybe set a preview image?
+				}
+				break;
 
-				// This works for WebKit (but we can’t set a title)
-				event.dataTransfer.setData("text/plain", this.href);
-
-				// This works for Chromium (but we can’t set a title)
-				event.dataTransfer.setData("text/uri-list", this.href);
-
-				// This does nothing (but in Chromium anchors include outerHTML; Firefox does this including the parent element?).
-				event.dataTransfer.setData("text/html", this.outerHTML);
-
-				// This works for Firefox
-				event.dataTransfer.setData("text/x-moz-url", `${this.href}\r\n${this.text}`);
-
+			case "dragend": 
+				this.#internals.states.delete("active");
 				break;
 		}
 	}
@@ -241,12 +257,30 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.href = this.#url.href;
 	}
 
+	get host() {
+		return this.#url.host;
+	}
+
+	set host(value) {
+		this.#url.host = value;
+		this.href = this.#url.href;
+	}
+
 	get hostname() {
 		return this.#url.hostname;
 	}
 
 	set hostname(value) {
 		this.#url.hostname = value;
+		this.href = this.#url.href;
+	}
+
+	get pathname() {
+		return this.#url.pathname;
+	}
+
+	set pathname(value) {
+		this.#url.pathname = value;
 		this.href = this.#url.href;
 	}
 
