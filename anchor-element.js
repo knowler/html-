@@ -115,14 +115,19 @@ export class ArrowAnchorElement extends HTMLElement {
 				if (this.rel.includes("noopener")) windowfeatures.push("noopener");
 				if (this.rel.includes("opener")) windowfeatures.push("opener");
 
+				// https://html.spec.whatwg.org/#hyperlink-auditing
 				if (this.ping) {
-					for (const url of this.ping.split(" ")) {
-						if (URL.canParse(url)) {
+					// TODO: need to split on ASCII white space (i.e. includes tab, returns, etc.)
+					for (const urlString of this.ping.split(" ")) {
+						if (URL.canParse(urlString)) {
+							const url = new URL(urlString);
+							if (!["http:", "https"].includes(url.protocol)) break;
 							// TODO handle referrer stuff (what needs to happen)
 							fetch(url, {
 								method: "POST",
 								body: "PING",
 								mode: "no-cors",
+								// A guess
 								priority: "low",
 								keepalive: true,
 								headers: {
@@ -136,6 +141,8 @@ export class ArrowAnchorElement extends HTMLElement {
 						}
 					}
 				}
+
+				break;
 
 				window.open(
 					this.href,
