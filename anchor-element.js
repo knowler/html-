@@ -37,11 +37,14 @@ export class ArrowAnchorElement extends HTMLElement {
 		// https://w3c.github.io/html-aam/#el-a-no-href
 		this.#internals.role = "generic";
 
-		this.addEventListener("click", this);
-		this.addEventListener("dragend", this);
-		this.addEventListener("dragstart", this);
-		this.addEventListener("keydown", this);
+		this.addEventListener("pointerenter", this);
+		this.addEventListener("pointerleave", this);
+
 		this.addEventListener("pointerdown", this);
+		this.addEventListener("dragstart", this);
+		this.addEventListener("dragend", this);
+		this.addEventListener("keydown", this);
+		this.addEventListener("click", this);
 	}
 
 	// TODO: accept user tab index
@@ -74,8 +77,25 @@ export class ArrowAnchorElement extends HTMLElement {
 	}
 
 	handleEvent(event) {
-		//console.log(event.type, event);
 		switch (event.type) {
+
+			case "pointerenter":
+				if (event.altKey) this.draggable = false;
+				this.#draggableController = new AbortController();
+				window.addEventListener("keyup", this.#handleShouldBeDraggable.bind(this), {
+					signal: this.#draggableController.signal,
+				});
+				window.addEventListener("keydown", this.#handleShouldBeDraggable.bind(this), {
+					signal: this.#draggableController.signal,
+				});
+				break;
+
+			// TODO: is this reliable? What if the window loses focus.
+			case "pointerleave":
+				this.draggable = true;
+				this.#draggableController.abort();
+				break;
+
 			case "keydown":
 				if (event.code !== "Enter") break;
 			case "click":
@@ -130,7 +150,7 @@ export class ArrowAnchorElement extends HTMLElement {
 				break;
 
 			case "dragstart":
-				if (event.altKey || event.defaultPrevented) break;
+				if (event.defaultPrevented) break;
 
 				// If there is text selection this shouldn’t drag the link itself (the default)
 				const [textNode] = event.target.childNodes;
@@ -155,6 +175,14 @@ export class ArrowAnchorElement extends HTMLElement {
 			case "dragend": 
 				this.#internals.states.delete("active");
 				break;
+		}
+	}
+
+	#draggableController;
+	#handleShouldBeDraggable(event) {
+		if (event.key === "Alt") {
+			if (event.type === "keydown") this.draggable = false;
+			if (event.type === "keyup") this.draggable = true;
 		}
 	}
 
