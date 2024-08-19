@@ -13,3 +13,17 @@ export function html() {
 function identity(raw, ...expressions) {
 	return String.raw({ raw }, ...expressions);
 }
+
+// TODO: this only handles strings, maybe split it out.
+export function reflectAttributes(instance, ...attributes) {
+	for (const attribute of attributes) {
+		Object.defineProperty(instance, attribute, {
+		get() {
+				return instance.getAttribute(attribute) || "";
+			},
+			set(value) {
+				instance.setAttribute(attribute, value || "");
+			},
+		});
+	}
+}

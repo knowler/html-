@@ -1,9 +1,11 @@
-import { css, html } from "arrow-html/utils"
+import { css, html } from "arrow-html/utils";
+import { ArrowElement } from "arrow-html/element";
 
 /**
  * @see https://html.spec.whatwg.org/#the-a-element
  */
-export class ArrowAnchorElement extends HTMLElement {
+export class ArrowAnchorElement extends ArrowElement {
+	static tagName = "a-";
 	static content = html`<slot></slot>`;
 	static styles = css`
 		:host([href]) {
@@ -32,20 +34,13 @@ export class ArrowAnchorElement extends HTMLElement {
 	constructor() {
 		super();
 
-		ArrowAnchorElement.#reflectAttributes(this, "hreflang", "target", "download", "ping", "type", "rel");
 		ArrowAnchorElement.#reflectURLProperties(this, "hash", "host", "hostname", "pathname", "password", "username", "search", "protocol", "port");
-
-		this.attachShadow({ mode: "open" });
-
-		this.shadowRoot.adoptedStyleSheets = [ArrowAnchorElement.styles];
-		this.shadowRoot.append(ArrowAnchorElement.content.cloneNode(true));
 
 		// https://w3c.github.io/html-aam/#el-a-no-href
 		this.#internals.role = "generic";
 
 		this.addEventListener("pointerenter", this);
 		this.addEventListener("pointerleave", this);
-
 		this.addEventListener("pointerdown", this);
 		this.addEventListener("dragstart", this);
 		this.addEventListener("dragend", this);
@@ -53,6 +48,9 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.addEventListener("click", this);
 	}
 
+	static get reflectedAttributes() {
+		return ["hreflang", "target", "download", "ping", "type", "rel"];
+	}
 	// TODO: accept user tab index
 	static get observedAttributes() {
 		return ["href"];
@@ -251,30 +249,7 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.textContent = value;
 	}
 
-	// Definition helper
-
-	static define(tagName = "a-") {
-		if (!customElements.get(tagName)) {
-			customElements.define(tagName, this);
-			window[this.name] = this;
-		}
-	}
-
 	// Static reflection helpers
-
-	static #reflectAttributes(instance, ...attributes) {
-		for (const attribute of attributes) {
-			Object.defineProperty(instance, attribute, {
-				get() {
-					return instance.getAttribute(attribute) || "";
-				},
-				set(value) {
-					instance.setAttribute(attribute, value ?? "");
-				},
-			});
-		}
-	}
-
 	static #reflectURLProperties(instance, ...props) {
 		for (const prop of props) {
 			Object.defineProperty(instance, prop, {
