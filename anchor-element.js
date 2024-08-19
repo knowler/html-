@@ -1,5 +1,8 @@
 import { css, html } from "arrow-html/utils"
 
+/**
+ * @see https://html.spec.whatwg.org/#the-a-element
+ */
 export class ArrowAnchorElement extends HTMLElement {
 	static content = html`<slot></slot>`;
 	static styles = css`
@@ -28,6 +31,9 @@ export class ArrowAnchorElement extends HTMLElement {
 
 	constructor() {
 		super();
+
+		ArrowAnchorElement.#reflectAttributes(this, "hreflang", "target", "download", "ping", "type", "rel");
+		ArrowAnchorElement.#reflectURLProperties(this, "hash", "host", "hostname", "pathname", "password", "username", "search", "protocol", "port");
 
 		this.attachShadow({ mode: "open" });
 
@@ -142,8 +148,6 @@ export class ArrowAnchorElement extends HTMLElement {
 					}
 				}
 
-				break;
-
 				window.open(
 					this.href,
 					event.metaKey ? "_blank" : this.target || "_self",
@@ -160,6 +164,7 @@ export class ArrowAnchorElement extends HTMLElement {
 				if (event.defaultPrevented) break;
 
 				// If there is text selection this shouldn’t drag the link itself (the default)
+				// TODO: This isn’t very thorough
 				const [textNode] = event.target.childNodes;
 				if (textNode && !getSelection().containsNode(textNode)) {
 
@@ -173,6 +178,8 @@ export class ArrowAnchorElement extends HTMLElement {
 					event.dataTransfer.setData("text/html", this.outerHTML);
 
 					// This works for Firefox
+					// This is problematic when dragging to a Finder window since
+					// it seems to include an extra `\r` at the end of the URL.
 					event.dataTransfer.setData("text/x-moz-url", `${this.href}\r\n${this.text}`);
 
 				// TODO: maybe set a preview image?
@@ -215,63 +222,14 @@ export class ArrowAnchorElement extends HTMLElement {
 		this.setAttribute("href", value);
 	}
 
-	get hreflang() {
-		return this.getAttribute("hreflang") ?? "";
-	}
-
-	set hreflang(value) {
-		this.setAttribute("hreflang", value);
-	}
-
-	get target() {
-		return this.getAttribute("target") ?? "";
-	}
-
-	set target(value) {
-		this.setAttribute("target", value);
-	}
-
-	// NOTE: this is the name for the download and not a boolean of
-	// whether or not the file should download.
-	get download() {
-		return this.getAttribute("download") ?? "";
-	}
-
-	set download(value) {
-		this.setAttribute("download", value);
-	}
-
-	get type() {
-		return this.getAttribute("type") ?? "";
-	}
-
-	set type(value) {
-		this.setAttribute("type", value)
-	}
-
 	// The spec says this should be limited to only known values
+	// TODO: is there a platform-provided list of these?
 	get referrerPolicy() {
 		return this.getAttribute("referrerpolicy") ?? "";
 	}
 
 	set referrerPolicy(value) {
 		this.setAttribute("referrerpolicy", value);
-	}
-
-	get rel() {
-		return this.getAttribute("rel") ?? "";
-	}
-
-	set rel(value) {
-		this.setAttribute("rel", value);
-	}
-
-	get ping() {
-		return this.getAttribute("ping") ?? "";
-	}
-
-	set ping(value) {
-		this.setAttribute("ping", value);
 	}
 
 	// TODO: we don’t have a DOMTokenList
@@ -281,87 +239,6 @@ export class ArrowAnchorElement extends HTMLElement {
 
 	get origin() {
 		return this.#url.origin;
-	}
-
-	get hash() {
-		return this.#url.hash;
-	}
-
-	set hash(value) {
-		this.#url.hash = value;
-		this.href = this.#url.href;
-	}
-
-	get host() {
-		return this.#url.host;
-	}
-
-	set host(value) {
-		this.#url.host = value;
-		this.href = this.#url.href;
-	}
-
-	get hostname() {
-		return this.#url.hostname;
-	}
-
-	set hostname(value) {
-		this.#url.hostname = value;
-		this.href = this.#url.href;
-	}
-
-	get pathname() {
-		return this.#url.pathname;
-	}
-
-	set pathname(value) {
-		this.#url.pathname = value;
-		this.href = this.#url.href;
-	}
-
-	get port() {
-		return this.#url.port;
-	}
-
-	set port(value) {
-		this.#url.port = value;
-		this.href = this.#url.href;
-	}
-
-	get protocol() {
-		return this.#url.protocol;
-	}
-
-	set protocol(value) {
-		this.#url.protocol = value;
-		this.href = this.#url.href;
-	}
-
-	get search() {
-		return this.#url.search;
-	}
-
-	set search(value) {
-		this.#url.search = value;
-		this.href = this.#url.href;
-	}
-
-	get username() {
-		return this.#url.username;
-	}
-
-	set username(value) {
-		this.#url.username = value;
-		this.href = this.#url.href;
-	}
-
-	get password() {
-		return this.#url.password;
-	}
-
-	set password(value) {
-		this.#url.password = value;
-		this.href = this.#url.href;
 	}
 
 	// Text content
@@ -380,6 +257,35 @@ export class ArrowAnchorElement extends HTMLElement {
 		if (!customElements.get(tagName)) {
 			customElements.define(tagName, this);
 			window[this.name] = this;
+		}
+	}
+
+	// Static reflection helpers
+
+	static #reflectAttributes(instance, ...attributes) {
+		for (const attribute of attributes) {
+			Object.defineProperty(instance, attribute, {
+				get() {
+					return instance.getAttribute(attribute) || "";
+				},
+				set(value) {
+					instance.setAttribute(attribute, value ?? "");
+				},
+			});
+		}
+	}
+
+	static #reflectURLProperties(instance, ...props) {
+		for (const prop of props) {
+			Object.defineProperty(instance, prop, {
+				get() {
+					return instance.#url[prop];
+				},
+				set(value) {
+					instance.#url[prop] = value;
+					instance.href = instance.#url.href;
+				},
+			});
 		}
 	}
 }
