@@ -5,7 +5,7 @@ export class ArrowElement extends HTMLElement {
 		super();
 
 		if (this.constructor.reflectedAttributes) {
-			reflectAttributes(this, this.constructor.reflectedAttributes);
+			reflectAttributes(this, ...this.constructor.reflectedAttributes);
 		}
 
 		this.attachShadow({ mode: "open" });
