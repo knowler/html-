@@ -223,15 +223,27 @@ export class ArrowAnchorElement extends ArrowElement {
 	set href(value) {
 		this.setAttribute("href", value);
 	}
+	#allowedReferrerPolicies = new Set(
+		"no-referrer",
+		"no-referrer-when-downgrade",
+		"origin",
+		"origin-when-cross-origin",
+		"same-origin",
+		"strict-origin",
+		"strict-origin-when-cross-origin",
+		"unsafe-url",
+	);
 
 	// The spec says this should be limited to only known values
 	// TODO: is there a platform-provided list of these?
 	get referrerPolicy() {
-		return this.getAttribute("referrerpolicy") ?? "";
+		const values = this.getAttribute("referrerpolicy");
+		return this.#allowedReferrerPolicies.has(value) ? value : "";
 	}
 
 	set referrerPolicy(value) {
-		this.setAttribute("referrerpolicy", value);
+		if (this.#allowedReferrerPolicies.has(value))
+			this.setAttribute("referrerpolicy", value);
 	}
 
 	// TODO: we don’t have a DOMTokenList
