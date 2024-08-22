@@ -44,6 +44,8 @@ export class ArrowAnchorElement extends ArrowElement {
 		this.addEventListener("pointerdown", this);
 		this.addEventListener("dragstart", this);
 		this.addEventListener("dragend", this);
+		this.addEventListener("touchend", this);
+		this.addEventListener("touchcancel", this);
 		this.addEventListener("keydown", this);
 		this.addEventListener("click", this);
 	}
@@ -184,6 +186,8 @@ export class ArrowAnchorElement extends ArrowElement {
 				}
 				break;
 
+			case "touchend":
+			case "touchcancel":
 			case "dragend": 
 				this.#internals.states.delete("active");
 				break;
