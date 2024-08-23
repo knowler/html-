@@ -30,7 +30,11 @@ export class ArrowAnchorElement extends ArrowElement {
 
 	#url;
 
-	#relList = new DOMTokenList(this, "rel");
+	#relList = new DOMTokenList(this, "rel", [
+		"noopener",
+		"noreferrer",
+		"opener",
+	]);
 
 	constructor() {
 		super();
