@@ -42,7 +42,7 @@ export class DOMTokenList {
 		for (const token of tokens) {
 			// TODO: there’s another error here for syntax related stuff?
 			// TODO: figure out the actual exception stuff
-			if (token === "") throw new DOMException("token cannot be a string");
+			if (token === "") throw new DOMException("token cannot be an empty string");
 			this.#set.add(token);
 		}
 		this.#updateDOM();
