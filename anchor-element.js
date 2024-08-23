@@ -9,21 +9,16 @@ export class ArrowAnchorElement extends ArrowElement {
 	static content = html`<slot></slot>`;
 	static styles = css`
 		:host([href]) {
-			color: light-dark(LinkText, hsl(from MediumPurple h s calc(l * 1.2)));
+			color: LinkText;
+			color: -WebKit-Link;
 			text-decoration: underline;
 			cursor: pointer;
-			/* outline-offset: 1px; /* For Chromium */
 			user-select: text;
 		}
 
-		/* ActiveText and VisitedText don’t seem to work at all here */
-		:host([href]:state(visited)) {
-			/* color: VisitedText; */
-			color: rgb(85 26 139);
-		}
-		:host([href]:state(active)) {
-			/* color: ActiveText; */
-			color: light-dark(Red, hsl(from Red calc(h * 1.2) calc(s * 0.8) calc(l * 1.5)));
+		:host([href]:active) {
+			color: ActiveText;
+			color: -WebKit-ActiveLink;
 		}
 	`;
 
@@ -41,11 +36,8 @@ export class ArrowAnchorElement extends ArrowElement {
 
 		this.addEventListener("pointerenter", this);
 		this.addEventListener("pointerleave", this);
-		this.addEventListener("pointerdown", this);
 		this.addEventListener("dragstart", this);
 		this.addEventListener("dragend", this);
-		this.addEventListener("touchend", this);
-		this.addEventListener("touchcancel", this);
 		this.addEventListener("keydown", this);
 		this.addEventListener("click", this);
 	}
@@ -105,7 +97,6 @@ export class ArrowAnchorElement extends ArrowElement {
 			case "keydown":
 				if (event.code !== "Enter") break;
 			case "click":
-				this.#internals.states.delete("active");
 				if (event.altKey) break;
 
 				if (this.hasAttribute("download") && "showOpenFilePicker" in window) {
@@ -156,10 +147,6 @@ export class ArrowAnchorElement extends ArrowElement {
 
 				break;
 
-			case "pointerdown":
-				this.#internals.states.add("active");
-				break;
-
 			case "dragstart":
 				if (event.defaultPrevented) break;
 
@@ -184,12 +171,6 @@ export class ArrowAnchorElement extends ArrowElement {
 
 				// TODO: maybe set a preview image?
 				}
-				break;
-
-			case "touchend":
-			case "touchcancel":
-			case "dragend": 
-				this.#internals.states.delete("active");
 				break;
 		}
 	}
