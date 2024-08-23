@@ -5,6 +5,17 @@ import { ArrowElement } from "arrow-html/element";
 // Taken from https://github.com/medialize/tokenlist/blob/26848b3085d081056dfc74056cf7895f6a1b777c/src/tokenlist.js#L13
 const ASCII_WHITESPACE = /[\u0009\u000A\u000C\u000D\u0020]+/;
 
+const REFERRER_POLICIES = [
+	"no-referrer",
+	"no-referrer-when-downgrade",
+	"origin",
+	"origin-when-cross-origin",
+	"same-origin",
+	"strict-origin",
+	"strict-origin-when-cross-origin",
+	"unsafe-url",
+];
+
 /**
  * @see https://html.spec.whatwg.org/#the-a-element
  */
@@ -135,7 +146,6 @@ export class ArrowAnchorElement extends ArrowElement {
 				}
 
 				const allowedFeatures = new Set(["noreferrer", "noopener", "opener"]);
-				// Refactor to use a polyfilled `DOMTokenList`
 				const windowFeatures = allowedFeatures.intersection(new Set(this.relList))
 
 				// https://html.spec.whatwg.org/#hyperlink-auditing
@@ -223,21 +233,13 @@ export class ArrowAnchorElement extends ArrowElement {
 
 	// The spec says this should be limited to only known values
 	#allowedReferrerPolicies = new Set(
-		"no-referrer",
-		"no-referrer-when-downgrade",
-		"origin",
-		"origin-when-cross-origin",
-		"same-origin",
-		"strict-origin",
-		"strict-origin-when-cross-origin",
-		"unsafe-url",
 	);
 	get referrerPolicy() {
 		const value = this.getAttribute("referrerpolicy");
-		return this.#allowedReferrerPolicies.has(value) ? value : "";
+		return REFERRER_POLICIES.includes(value) ? value : "";
 	}
 	set referrerPolicy(value) {
-		if (this.#allowedReferrerPolicies.has(value))
+		if (REFERRER_POLICIES.includes(value))
 			this.setAttribute("referrerpolicy", value);
 	}
 
