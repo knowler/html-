@@ -1,5 +1,9 @@
 import { css, html } from "arrow-html/utils";
+import { DOMTokenList } from "arrow-html/dom-token-list";
 import { ArrowElement } from "arrow-html/element";
+
+// Taken from https://github.com/medialize/tokenlist/blob/26848b3085d081056dfc74056cf7895f6a1b777c/src/tokenlist.js#L13
+const ASCII_WHITESPACE = /[\u0009\u000A\u000C\u000D\u0020]+/;
 
 /**
  * @see https://html.spec.whatwg.org/#the-a-element
@@ -58,7 +62,7 @@ export class ArrowAnchorElement extends ArrowElement {
 	}
 	// TODO: accept user tab index
 	static get observedAttributes() {
-		return ["href"];
+		return ["href", "rel"];
 	}
 	attributeChangedCallback(name, oldValue, newValue) {
 		switch (name) {
@@ -90,6 +94,9 @@ export class ArrowAnchorElement extends ArrowElement {
 
 				break;
 			}
+			case "rel":
+				this.#relList = new DOMTokenList(this, "rel");
+				break;
 		}
 	}
 
@@ -124,18 +131,14 @@ export class ArrowAnchorElement extends ArrowElement {
 					break;
 				}
 
-				// TODO: how do we factor in referrerpolicy
-				// Also, we probably need to use the document’s default.
-				let windowfeatures = [];
-
-				if (this.rel.includes("noreferrer")) windowfeatures.push("noreferrer");
-				if (this.rel.includes("noopener")) windowfeatures.push("noopener");
-				if (this.rel.includes("opener")) windowfeatures.push("opener");
+				const allowedFeatures = new Set(["noreferrer", "noopener", "opener"]);
+				// Refactor to use a polyfilled `DOMTokenList`
+				const windowFeatures = allowedFeatures.intersection(new Set(this.relList))
 
 				// https://html.spec.whatwg.org/#hyperlink-auditing
 				if (this.ping) {
 					// TODO: need to split on ASCII white space (i.e. includes tab, returns, etc.)
-					for (const urlString of this.ping.split(" ")) {
+					for (const urlString of this.ping.split(ASCII_WHITESPACE)) {
 						if (URL.canParse(urlString)) {
 							const url = new URL(urlString);
 							if (!["http:", "https"].includes(url.protocol)) break;
@@ -161,7 +164,7 @@ export class ArrowAnchorElement extends ArrowElement {
 				window.open(
 					this.href,
 					event.metaKey ? "_blank" : this.target || "_self",
-					windowfeatures.join(",")
+					Array.from(windowFeatures).join(","),
 				);
 
 				break;
@@ -238,8 +241,15 @@ export class ArrowAnchorElement extends ArrowElement {
 			this.setAttribute("referrerpolicy", value);
 	}
 
-	// TODO: we don’t have a DOMTokenList
-	relList = "unimplemented";
+	#relList = new DOMTokenList(this, "rel");
+
+	get relList() {
+		return this.#relList;
+	}
+
+	set relList(value) {
+		this.relList.value = value;
+	}
 
 	// Based on the href
 

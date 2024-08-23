@@ -16,12 +16,14 @@ if (location.origin === "https://knowler.github.io") {
 	{
 		"imports": {
 			"arrow-html/anchor-element": "./anchor-element.js",
+			"arrow-html/dom-token-list": "./dom-token-list.js",
 			"arrow-html/element": "./element.js",
 			"arrow-html/utils": "./utils.js"
 		}
 	}
 </script>
 <link rel="modulepreload" href="./anchor-element.js">
+<link rel="modulepreload" href="./dom-token-list.js">
 <link rel="modulepreload" href="./element.js">
 <link rel="modulepreload" href="./utils.js">
 <script type="module" blocking="render">
@@ -47,8 +49,8 @@ if (location.origin === "https://knowler.github.io") {
 <p><a- href="anchor-element-demo.html" hreflang="en-ca">Arrow, Relative URL</a->
 
 <h2>With absolute URL</h2>
-<p><a href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">HTML, Absolute URL</a>
-<p><a- href="https://knowler.dev" hreflang="en-ca" rel="noopener noreferrer">Arrow, Absolute URL</a->
+<p><a href="https://knowler.dev" hreflang="en-ca" rel="me noopener noreferrer">HTML, Absolute URL</a>
+<p><a- href="https://knowler.dev" hreflang="en-ca" rel="me noopener noreferrer">Arrow, Absolute URL</a->
 
 <h2>With hash</h2>
 <p><a href="#target">HTML, Hash</a>
