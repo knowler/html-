@@ -116,7 +116,8 @@ export class ArrowAnchorElement extends ArrowElement {
 			case "keydown":
 				if (event.code !== "Enter") break;
 			case "click":
-				if (event.altKey) break;
+				// Don’t click if there is selection
+				if (event.altKey && getSelection().type === "Range") break;
 
 				if (this.hasAttribute("download") && "showOpenFilePicker" in window) {
 					this.#downloadFile();
@@ -170,9 +171,7 @@ export class ArrowAnchorElement extends ArrowElement {
 				if (event.defaultPrevented) break;
 
 				// If there is text selection this shouldn’t drag the link itself (the default)
-				// TODO: This isn’t very thorough
-				const [textNode] = event.target.childNodes;
-				if (textNode && !getSelection().containsNode(textNode)) {
+				if (getSelection().type !== "Range") {
 
 					// This works for WebKit (but we can’t set a title)
 					event.dataTransfer.setData("text/plain", this.href);
