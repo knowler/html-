@@ -102,7 +102,6 @@ export class ArrowAnchorElement extends ArrowElement {
 					this.removeAttribute("draggable");
 				}
 
-				// TODO: this is broken?
 				if (this.href !== newValue) {
 					this.#url = URL.canParse(newValue)
 						? new URL(newValue)
@@ -160,6 +159,9 @@ export class ArrowAnchorElement extends ArrowElement {
 								method: "POST",
 								body: "PING",
 								keepalive: true,
+								// TODO:
+								// - Do we need to use the document’s referrer policy when ours isn’t set?
+								// - Do we need to factor in `rel=noreferrer`? What should be given priority?
 								referrerPolicy: this.referrerPolicy || undefined,
 								headers: {
 									"content-length": 4,
@@ -172,6 +174,9 @@ export class ArrowAnchorElement extends ArrowElement {
 					}
 				}
 
+				// TODO:
+				// - Do we need to use the document’s referrer policy when ours isn’t set?
+				// - Do we need to factor in `rel=noreferrer`? What should be given priority?
 				// We’re limited by what referrer policy stuff we can do here.
 				// https://bugzilla.mozilla.org/show_bug.cgi?id=1433352
 				window.open(
@@ -222,7 +227,9 @@ export class ArrowAnchorElement extends ArrowElement {
 			suggestedName: this.download ?? this.#url.pathname,
 		});
 		const writable = await handle.createWritable();
-		// TODO: set referrer-related headers
+		// TODO:
+		// - Do we need to use the document’s referrer policy when ours isn’t set?
+		// - Do we need to factor in `rel=noreferrer`? What should be given priority?
 		const headers = new Headers();
 		const response = await fetch(this.href, {
 			referrerPolicy: this.referrerPolicy,
@@ -231,9 +238,6 @@ export class ArrowAnchorElement extends ArrowElement {
 		await writable.close();
 	}
 
-	// The spec says this should be limited to only known values
-	#allowedReferrerPolicies = new Set(
-	);
 	get referrerPolicy() {
 		const value = this.getAttribute("referrerpolicy");
 		return REFERRER_POLICIES.includes(value) ? value : "";
