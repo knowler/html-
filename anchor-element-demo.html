@@ -62,7 +62,7 @@ if (location.origin === "https://knowler.github.io") {
 <script>
 if (location.origin === "https://knowler.github.io") {
 	for (const anchor of document.querySelectorAll("[href=\"#target\"]")) {
-		anchor.setAttribute("href", new URL("#target", element.baseURI).pathname);
+		anchor.setAttribute("href", new URL("#target", anchor.baseURI).pathname);
 	}
 }
 </script>
