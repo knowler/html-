@@ -74,16 +74,13 @@ if (location.origin === "https://knowler.github.io") {
 <p><a href="anchor-element.js" download>HTML, Download custom element</a>
 <p><a- href="anchor-element.js" download>Arrow, Download custom element</a->
 
-<template id="ping">
-	<h2>Ping</h2>
+<h2>Ping</h2>
 
-	<p><a href="anchor-element-demo.html">HTML, Ping</a>
-	<p><a- href="anchor-element-demo.html">Arrow, Ping</a->
-</template>
-<script>
-const pingTemplate = document.querySelector("#ping");
-for (const anchor of pingTemplate.content.querySelectorAll("[href]")) {
+<p><a href="anchor-element-demo.html">HTML, Ping</a>
+<p><a- href="anchor-element-demo.html">Arrow, Ping</a->
+<script type="module">
+await customElements.whenDefined("a-");
+for (const anchor of document.querySelectorAll("h2:last-of-type ~ p > :is(a, a-)")) {
 	anchor.ping = `${location.origin}/ping`;
 }
-document.body.append(pingTemplate.content);
 </script>
