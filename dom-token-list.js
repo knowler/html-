@@ -3,32 +3,34 @@ const ASCII_WHITESPACE = /[\u0009\u000A\u000C\u000D\u0020]+/;
 
 export class DOMTokenList {
 	#set = new Set();
-
-	// TODO: maybe refactor to use a WeakRef for the #element
 	#element;
 	#attribute;
-	#updateDOM() {
-		this.#element.setAttribute(this.#attribute, this.value);
-	}
 
 	constructor(element, attribute) {
-		this.#element = element;
+		this.#element = new WeakRef(element);
 		this.#attribute = attribute;
-		if (this.#element.hasAttribute(this.#attribute)) {
-			this.value = this.#element.getAttribute(this.#attribute);
+		if (element.hasAttribute(attribute)) {
+			this.value = element.getAttribute(attribute);
 		}
 
 		const relObserver = new MutationObserver(this.#updateFromDOM.bind(this));
 
-		relObserver.observe(this.#element, {
+		relObserver.observe(element, {
 			attributes: true,
-			attributeFilter: [this.#attribute]
+			attributeFilter: [attribute]
 		});
 	}
 
 	#updateFromDOM() {
-		const value = this.#element.getAttribute(this.#attribute);
-		this.#set = new Set(value?.split(ASCII_WHITESPACE))
+		const element = this.#element.deref();
+		if (element) {
+			const value = element.getAttribute(this.#attribute);
+			this.#set = new Set(value?.split(ASCII_WHITESPACE))
+		}
+	}
+
+	#updateDOM() {
+		this.#element.deref()?.setAttribute(this.#attribute, this.value);
 	}
 
 	get length() {
@@ -80,7 +82,7 @@ export class DOMTokenList {
 	}
 	toggle(token, force) {
 		if (force != null) this.#set[force ? "add" : "delete"](token);
-		if (this.#set.has(token)) this.#set.delete(token);
+		else if (this.#set.has(token)) this.#set.delete(token);
 		else this.#set.add(token);
 		this.#updateDOM();
 	}
