@@ -143,13 +143,10 @@ export class ArrowAnchorElement extends ArrowElement {
 							fetch(url, {
 								method: "POST",
 								body: "PING",
-								mode: "no-cors",
-								// A guess
-								priority: "low",
 								keepalive: true,
+								referrerPolicy: this.referrerPolicy || undefined,
 								headers: {
 									"content-length": 4,
-									// These don’t seem to work
 									"content-type": "text/ping",
 									"ping-to": this.href,
 									"ping-from": location.href,
@@ -159,6 +156,8 @@ export class ArrowAnchorElement extends ArrowElement {
 					}
 				}
 
+				// We’re limited by what referrer policy stuff we can do here.
+				// https://bugzilla.mozilla.org/show_bug.cgi?id=1433352
 				window.open(
 					this.href,
 					event.metaKey ? "_blank" : this.target || "_self",
@@ -208,7 +207,10 @@ export class ArrowAnchorElement extends ArrowElement {
 		});
 		const writable = await handle.createWritable();
 		// TODO: set referrer-related headers
-		const response = await fetch(this.href);
+		const headers = new Headers();
+		const response = await fetch(this.href, {
+			referrerPolicy: this.referrerPolicy,
+		});
 		await writable.write(await response.blob())
 		await writable.close();
 	}
@@ -227,7 +229,7 @@ export class ArrowAnchorElement extends ArrowElement {
 	// The spec says this should be limited to only known values
 	// TODO: is there a platform-provided list of these?
 	get referrerPolicy() {
-		const values = this.getAttribute("referrerpolicy");
+		const value = this.getAttribute("referrerpolicy");
 		return this.#allowedReferrerPolicies.has(value) ? value : "";
 	}
 
