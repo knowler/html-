@@ -29,7 +29,18 @@ export class ArrowAnchorElement extends ArrowElement {
 	constructor() {
 		super();
 
-		ArrowAnchorElement.#reflectURLProperties(this, "hash", "host", "hostname", "pathname", "password", "username", "search", "protocol", "port");
+		ArrowAnchorElement.#reflectURLProperties(this,
+			"hash",
+			"host",
+			"hostname",
+			"href",
+			"password",
+			"pathname",
+			"port",
+			"protocol",
+			"search",
+			"username",
+		);
 
 		// https://w3c.github.io/html-aam/#el-a-no-href
 		this.#internals.role = "generic";
@@ -53,6 +64,11 @@ export class ArrowAnchorElement extends ArrowElement {
 		switch (name) {
 			case "href": {
 
+				if (newValue == null) {
+					this.#url = null;
+					break;
+				}
+
 				// https://w3c.github.io/html-aam/#el-a
 				// https://w3c.github.io/html-aam/#el-a-no-href
 				this.#internals.role = newValue != null ? "link" : "generic";
@@ -65,9 +81,12 @@ export class ArrowAnchorElement extends ArrowElement {
 					this.removeAttribute("draggable");
 				}
 
-				this.#url = URL.canParse(newValue)
-					? new URL(newValue)
-					: new URL(newValue, this.baseURI);
+				// TODO: this is broken?
+				if (this.href !== newValue) {
+					this.#url = URL.canParse(newValue)
+						? new URL(newValue)
+						: new URL(newValue, this.baseURI);
+				}
 
 				break;
 			}
@@ -195,15 +214,6 @@ export class ArrowAnchorElement extends ArrowElement {
 		await writable.close();
 	}
 
-	// Reflected attributes
-
-	get href() {
-		return this.#url.href;
-	}
-
-	set href(value) {
-		this.setAttribute("href", value);
-	}
 	#allowedReferrerPolicies = new Set(
 		"no-referrer",
 		"no-referrer-when-downgrade",
@@ -248,16 +258,19 @@ export class ArrowAnchorElement extends ArrowElement {
 
 	// Static reflection helpers
 	static #reflectURLProperties(instance, ...props) {
-		for (const prop of props) {
-			Object.defineProperty(instance, prop, {
-				get() {
-					return instance.#url[prop];
-				},
-				set(value) {
-					instance.#url[prop] = value;
-					instance.href = instance.#url.href;
-				},
-			});
-		}
+		Object.defineProperties(instance,
+			props.reduce((defined, prop) => {
+				defined[prop] = {
+					get() {
+						return instance.#url?.[prop] ?? "";
+					},
+					set(value) {
+						instance.#url[prop] = value;
+						instance.setAttribute("href", instance.#url.href);
+					},
+				};
+				return defined;
+			}, {}),
+		);
 	}
 }
