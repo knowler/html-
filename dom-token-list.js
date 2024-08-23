@@ -4,6 +4,7 @@ const ASCII_WHITESPACE = /[\u0009\u000A\u000C\u000D\u0020]+/;
 export class DOMTokenList {
 	#set = new Set();
 
+	// TODO: maybe refactor to use a WeakRef for the #element
 	#element;
 	#attribute;
 	#updateDOM() {
@@ -16,6 +17,18 @@ export class DOMTokenList {
 		if (this.#element.hasAttribute(this.#attribute)) {
 			this.value = this.#element.getAttribute(this.#attribute);
 		}
+
+		const relObserver = new MutationObserver(this.#updateFromDOM.bind(this));
+
+		relObserver.observe(this.#element, {
+			attributes: true,
+			attributeFilter: [this.#attribute]
+		});
+	}
+
+	#updateFromDOM() {
+		const value = this.#element.getAttribute(this.#attribute);
+		this.#set = new Set(value?.split(ASCII_WHITESPACE))
 	}
 
 	get length() {
@@ -28,6 +41,7 @@ export class DOMTokenList {
 
 	set value(value) {
 		this.#set = new Set(value?.split(ASCII_WHITESPACE));
+		this.#updateDOM();
 	}
 
 	item(index) {

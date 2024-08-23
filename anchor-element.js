@@ -30,6 +30,8 @@ export class ArrowAnchorElement extends ArrowElement {
 
 	#url;
 
+	#relList = new DOMTokenList(this, "rel");
+
 	constructor() {
 		super();
 
@@ -62,7 +64,7 @@ export class ArrowAnchorElement extends ArrowElement {
 	}
 	// TODO: accept user tab index
 	static get observedAttributes() {
-		return ["href", "rel"];
+		return ["href"];
 	}
 	attributeChangedCallback(name, oldValue, newValue) {
 		switch (name) {
@@ -94,9 +96,6 @@ export class ArrowAnchorElement extends ArrowElement {
 
 				break;
 			}
-			case "rel":
-				this.#relList = new DOMTokenList(this, "rel");
-				break;
 		}
 	}
 
@@ -218,6 +217,7 @@ export class ArrowAnchorElement extends ArrowElement {
 		await writable.close();
 	}
 
+	// The spec says this should be limited to only known values
 	#allowedReferrerPolicies = new Set(
 		"no-referrer",
 		"no-referrer-when-downgrade",
@@ -228,33 +228,20 @@ export class ArrowAnchorElement extends ArrowElement {
 		"strict-origin-when-cross-origin",
 		"unsafe-url",
 	);
-
-	// The spec says this should be limited to only known values
-	// TODO: is there a platform-provided list of these?
 	get referrerPolicy() {
 		const value = this.getAttribute("referrerpolicy");
 		return this.#allowedReferrerPolicies.has(value) ? value : "";
 	}
-
 	set referrerPolicy(value) {
 		if (this.#allowedReferrerPolicies.has(value))
 			this.setAttribute("referrerpolicy", value);
 	}
 
-	#relList = new DOMTokenList(this, "rel");
-
 	get relList() {
 		return this.#relList;
 	}
-
 	set relList(value) {
 		this.relList.value = value;
-	}
-
-	// Based on the href
-
-	get origin() {
-		return this.#url.origin;
 	}
 
 	// Text content
@@ -262,9 +249,14 @@ export class ArrowAnchorElement extends ArrowElement {
 	get text() {
 		return this.textContent;
 	}
-
 	set text(value) {
 		this.textContent = value;
+	}
+
+	// Based on the href
+
+	get origin() {
+		return this.#url.origin;
 	}
 
 	// Static reflection helpers
