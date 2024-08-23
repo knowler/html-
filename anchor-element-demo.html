@@ -59,11 +59,13 @@ if (location.origin === "https://knowler.github.io") {
 	}
 </style>
 <div id="target">Hash Target</div>
-
-<h2>Ping</h2>
-
-<p><a href="anchor-element-demo.html" ping="https://knowler.dev">HTML, ping on follow</a>
-<p><a- href="anchor-element-demo.html" ping="https://knowler.dev">Arrow, ping on follow</a->
+<script>
+if (location.origin === "https://knowler.github.io") {
+	for (const anchor of document.querySelectorAll("[href=\"#target\"]")) {
+		anchor.setAttribute("href", new URL("#target", element.baseURI).pathname);
+	}
+}
+</script>
 
 <h2>Download</h2>
 
