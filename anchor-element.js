@@ -37,8 +37,10 @@ export class ArrowAnchorElement extends ArrowElement {
 		}
 	`;
 
+	/** @type {ElementInternals} */
 	#internals = this.attachInternals();
 
+	/** @type {URL} */
 	#url;
 
 	#relList = new DOMTokenList(this, "rel", [
@@ -54,7 +56,6 @@ export class ArrowAnchorElement extends ArrowElement {
 			"hash",
 			"host",
 			"hostname",
-			"href",
 			"password",
 			"pathname",
 			"port",
@@ -74,43 +75,46 @@ export class ArrowAnchorElement extends ArrowElement {
 		this.addEventListener("click", this);
 	}
 
+	/**
+	 * @note This is a feature of our base `ArrowElement` and not a Web Components API
+	 */
 	static get reflectedAttributes() {
 		return ["hreflang", "target", "download", "ping", "type", "rel"];
 	}
-	// TODO: accept user tab index
+
 	static get observedAttributes() {
 		return ["href"];
 	}
-	attributeChangedCallback(name, oldValue, newValue) {
-		switch (name) {
-			case "href": {
 
-				if (newValue == null) {
-					this.#url = null;
-					break;
-				}
-
-				// https://w3c.github.io/html-aam/#el-a
-				// https://w3c.github.io/html-aam/#el-a-no-href
-				this.#internals.role = newValue != null ? "link" : "generic";
-
-				if (this.#internals.role === "link") {
-					this.setAttribute("tabindex", 0);
-					this.setAttribute("draggable", "true");
-				} else {
-					this.removeAttribute("tabindex");
-					this.removeAttribute("draggable");
-				}
-
-				if (this.href !== newValue) {
-					this.#url = URL.canParse(newValue)
-						? new URL(newValue)
-						: new URL(newValue, this.baseURI);
-				}
-
-				break;
-			}
+	// Big assumption: `href` is the only observed attribute
+	attributeChangedCallback(_name, _oldValue, newValue) {
+		if (newValue == null) {
+			this.#url = null;
+			this.#internals.states.clear();
+			return;
 		}
+
+		// https://w3c.github.io/html-aam/#el-a
+		// https://w3c.github.io/html-aam/#el-a-no-href
+		this.#internals.role = newValue != null ? "link" : "generic";
+
+		if (this.#internals.role === "link") {
+			this.setAttribute("tabindex", 0);
+			this.setAttribute("draggable", "true");
+		} else {
+			this.removeAttribute("tabindex");
+			this.removeAttribute("draggable");
+		}
+
+		// We don’t need to update the internal URL if its href prop already matches the new value
+		if (this.href !== newValue) {
+			this.#url = URL.canParse(newValue)
+				? new URL(newValue)
+				: new URL(newValue, this.baseURI);
+		}
+
+		const isLocalLink = this.#url.href === document.documentURI;
+		this.#internals.states[isLocalLink ? "add" : "delete"]("local-link");
 	}
 
 	handleEvent(event) {
@@ -263,13 +267,24 @@ export class ArrowAnchorElement extends ArrowElement {
 		this.textContent = value;
 	}
 
+	// The getter/setter for the `href` property work differently:
+	// - the getter will return the fully qualified URL
+	// - the setter will just set the attribute (i.e. it supports relative URLs)
+
+	get href() {
+		return this.#url?.href ?? "";
+	}
+
+	set href(value) {
+		this.setAttribute("href", value);
+	}
+
 	// Based on the href
 
 	get origin() {
-		return this.#url.origin;
+		return this.#url?.origin ?? "";
 	}
 
-	// Static reflection helpers
 	static #reflectURLProperties(instance, ...props) {
 		Object.defineProperties(instance,
 			props.reduce((defined, prop) => {
@@ -277,9 +292,12 @@ export class ArrowAnchorElement extends ArrowElement {
 					get() {
 						return instance.#url?.[prop] ?? "";
 					},
+					// Only allow modifications if we have a `href` attribute/stored URL object.
 					set(value) {
-						instance.#url[prop] = value;
-						instance.setAttribute("href", instance.#url.href);
+						if (instance.#url) {
+							instance.#url[prop] = value;
+							instance.setAttribute("href", instance.#url.href);
+						}
 					},
 				};
 				return defined;
