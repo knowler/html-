@@ -86,6 +86,14 @@ export class ArrowAnchorElement extends ArrowElement {
 		return ["href"];
 	}
 
+	connectedCallback() {
+		window.addEventListener("hashchange", this, true);
+	}
+
+	disconnectedCallback() {
+		window.removeEventListener("hashchange", this, true);
+	}
+
 	// Big assumption: `href` is the only observed attribute
 	attributeChangedCallback(_name, _oldValue, newValue) {
 		if (newValue == null) {
@@ -113,8 +121,7 @@ export class ArrowAnchorElement extends ArrowElement {
 				: new URL(newValue, this.baseURI);
 		}
 
-		const isLocalLink = this.#url.href === document.documentURI;
-		this.#internals.states[isLocalLink ? "add" : "delete"]("local-link");
+		this.#updateLocalLinkState();
 	}
 
 	handleEvent(event) {
@@ -214,7 +221,16 @@ export class ArrowAnchorElement extends ArrowElement {
 				// TODO: maybe set a preview image?
 				}
 				break;
+
+			case "hashchange":
+				this.#updateLocalLinkState();
+				break;
 		}
+	}
+
+	#updateLocalLinkState() {
+		const isLocalLink = this.#url?.href === document.documentURI;
+		this.#internals.states[isLocalLink ? "add" : "delete"]("local-link");
 	}
 
 	#draggableController;
